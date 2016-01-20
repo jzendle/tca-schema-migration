@@ -1,3 +1,5 @@
+
+
 create schema npm_tca_iot;
 
 -- DROP TABLE action;
