@@ -6,11 +6,11 @@
   <version>1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <dependencies>
-    <dependency>
+<!--    <dependency>
       <groupId>vertica</groupId>
       <artifactId>vertica</artifactId>
       <version>7.1.2-0</version>
-    </dependency>
+    </dependency>-->
     <dependency>
       <groupId>commons-collections</groupId>
       <artifactId>commons-collections</artifactId>

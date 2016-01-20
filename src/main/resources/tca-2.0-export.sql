@@ -1,16 +1,18 @@
-DROP TABLE action;
+create schema npm_tca_iot;
+
+-- DROP TABLE action;
 CREATE TABLE npm_tca_iot.action
 (
-    guid char(36) CONSTRAINT action__guid NOT NULL,
-    alert char(36) CONSTRAINT action__alert NOT NULL,
-    action_type int CONSTRAINT action__action_type NOT NULL
+    guid char(36)  NOT NULL,
+    alert char(36)  NOT NULL,
+    action_type int  NOT NULL
 );
 
-ALTER TABLE npm_tca_iot.action ADD CONSTRAINT action__pk PRIMARY KEY (guid); 
+-- ALTER TABLE npm_tca_iot.action ADD CONSTRAINT action__pk PRIMARY KEY (guid); 
 
-ALTER TABLE npm_tca_iot.action ADD CONSTRAINT C_FOREIGN FOREIGN KEY (alert) references npm_tca_iot.alert (guid);
-
-CREATE PROJECTION npm_tca_iot.action /*+createtype(P)*/ 
+--  ALTER TABLE npm_tca_iot.action ADD CONSTRAINT C_FOREIGN FOREIGN KEY (alert) references npm_tca_iot.alert (guid);
+/*
+CREATE PROJECTION npm_tca_iot.action *//*+createtype(P)*//* 
 (
  guid,
  alert,
@@ -27,6 +29,8 @@ UNSEGMENTED ALL NODES;
 
 
 SELECT MARK_DESIGN_KSAFE(1);
+*/
+
 INSERT INTO action (guid, alert, action_type) VALUES ('002cc8f0-5878-4690-ae9e-141d8359aaa6', 'd05ad4b4-a136-4c2b-8129-99f73f8bf4fa', 1003);
 INSERT INTO action (guid, alert, action_type) VALUES ('00d85a05-9b3a-4611-bd98-ad8e3a18ebed', '843bca00-68ee-4306-a9b5-a2b5fa7a82b5', 1003);
 INSERT INTO action (guid, alert, action_type) VALUES ('00dc3191-ecc6-4958-b6fb-0766b533a8dd', 'd94b12ac-267f-4f4c-8d5e-9524ea6448f2', 1003);
@@ -320,19 +324,20 @@ INSERT INTO action (guid, alert, action_type) VALUES ('d95e23f4-d881-48ed-9911-6
 INSERT INTO action (guid, alert, action_type) VALUES ('dd963576-9fb4-4134-ae30-31456ca8ad54', 'd70ef5f4-89d5-47b0-a7ab-17f38fde0297', 1003);
 INSERT INTO action (guid, alert, action_type) VALUES ('94fa9a06-0dd3-4d29-be84-78356dbc03bf', 'aa9923a3-2feb-40d8-8281-44caa861aa2c', 1003);
 INSERT INTO action (guid, alert, action_type) VALUES ('e0dd7852-896d-49cb-bc82-5c788d0dfff8', 'aa9923a3-2feb-40d8-8281-44caa861aa2c', 1001);
-DROP TABLE action_parameter;
+-- DROP TABLE action_parameter;
 CREATE TABLE npm_tca_iot.action_parameter
 (
-    id int CONSTRAINT action_parameter__element NOT NULL,
-    element int CONSTRAINT action_parameter__element NOT NULL,
-    name varchar(128) CONSTRAINT action_parameter__element NOT NULL
+    id int NOT NULL,
+    element int NOT NULL,
+    name varchar(128) NOT NULL
 );
-
+/*
 ALTER TABLE npm_tca_iot.action_parameter ADD CONSTRAINT action_parameter__pk PRIMARY KEY (id); 
 
 ALTER TABLE npm_tca_iot.action_parameter ADD CONSTRAINT C_FOREIGN FOREIGN KEY (element) references npm_tca_iot.element (id);
+*/
 
-CREATE PROJECTION npm_tca_iot.action_parameter /*+createtype(P)*/ 
+/*CREATE PROJECTION npm_tca_iot.action_parameter *//*+createtype(P)*//* 
 (
  id ENCODING RLE,
  element ENCODING RLE,
@@ -349,25 +354,27 @@ SEGMENTED BY hash(action_parameter.id) ALL NODES KSAFE 1;
 
 
 SELECT MARK_DESIGN_KSAFE(1);
+*/
 INSERT INTO action_parameter (id, element, name) VALUES (1, 1001, 'bandwidth_upgrade');
 INSERT INTO action_parameter (id, element, name) VALUES (2, 1001, 'rate_2x');
 INSERT INTO action_parameter (id, element, name) VALUES (3, 1001, 'rate_3x');
 INSERT INTO action_parameter (id, element, name) VALUES (4, 1001, 'notify');
 INSERT INTO action_parameter (id, element, name) VALUES (21, 1003, 'email_id');
-DROP TABLE alert;
+-- DROP TABLE alert;
 CREATE TABLE npm_tca_iot.alert
 (
-    guid char(36) CONSTRAINT alert__guid NOT NULL,
-    metric char(36) CONSTRAINT alert__metric NOT NULL,
-    "timezone" int CONSTRAINT alert__timezone NOT NULL,
-    period int CONSTRAINT alert__period NOT NULL
+    guid char(36) NOT NULL,
+    metric char(36) NOT NULL,
+    timezone integer NOT NULL,
+    period integer NOT NULL
 );
-
+/*
 ALTER TABLE npm_tca_iot.alert ADD CONSTRAINT alert__pk PRIMARY KEY (guid); 
 
 ALTER TABLE npm_tca_iot.alert ADD CONSTRAINT C_FOREIGN FOREIGN KEY (metric) references npm_tca_iot.metric (guid);
-
-CREATE PROJECTION npm_tca_iot.alert /*+createtype(P)*/ 
+*/
+/*
+CREATE PROJECTION npm_tca_iot.alert *//*+createtype(P)*//* 
 (
  guid,
  metric,
@@ -385,7 +392,8 @@ AS
 UNSEGMENTED ALL NODES;
 
 
-SELECT MARK_DESIGN_KSAFE(1);
+SELECT MARK_DESIGN_KSAFE(1);*/
+
 INSERT INTO alert (guid, metric, timezone, period) VALUES ('0397d293-cf55-4105-8d64-cbd47394a116', '8b619214-7ea0-4bc4-b98c-08a1f5a18ee7', 2001, 1001);
 INSERT INTO alert (guid, metric, timezone, period) VALUES ('04ea1b55-93ad-4150-a53d-2375c2501488', 'f18dfa40-3298-4b79-ae04-6c673efb964b', 2003, 1002);
 INSERT INTO alert (guid, metric, timezone, period) VALUES ('0543e9d2-9160-421a-9d9e-541a85437836', '8bb0144b-dd58-4283-9194-28b523916050', 2003, 1002);
@@ -602,19 +610,19 @@ INSERT INTO alert (guid, metric, timezone, period) VALUES ('5cd59156-d6b1-4141-8
 INSERT INTO alert (guid, metric, timezone, period) VALUES ('b960e23c-b563-40b7-bd52-afae395a7ed6', '0becc6e9-9442-4ba7-81b4-6335a586b0ec', 2005, 1001);
 INSERT INTO alert (guid, metric, timezone, period) VALUES ('d70ef5f4-89d5-47b0-a7ab-17f38fde0297', 'd500dc34-7466-406d-8110-69496581ece9', 2005, 1002);
 INSERT INTO alert (guid, metric, timezone, period) VALUES ('aa9923a3-2feb-40d8-8281-44caa861aa2c', 'b8f06941-3e97-480e-b8ae-54496db5b4af', 2005, 1001);
-DROP TABLE alert_action_parameter;
+-- DROP TABLE alert_action_parameter;
 CREATE TABLE npm_tca_iot.alert_action_parameter
 (
-    action char(36) CONSTRAINT alert_action_parameter__action NOT NULL,
-    action_parameter int CONSTRAINT alert_action_parameter__action_parameter NOT NULL,
-    value varchar(256) CONSTRAINT alert_action_parameter__value NOT NULL
+    action char(36)   NOT NULL,
+    action_parameter int  NOT NULL,
+    value varchar(256)  NOT NULL
 );
-
+/*
 ALTER TABLE npm_tca_iot.alert_action_parameter ADD CONSTRAINT alert_action_parameter__pk PRIMARY KEY (action, action_parameter, value); 
 
 ALTER TABLE npm_tca_iot.alert_action_parameter ADD CONSTRAINT C_FOREIGN FOREIGN KEY (action) references npm_tca_iot.action (guid);
 
-CREATE PROJECTION npm_tca_iot.alert_action_parameter /*+createtype(P)*/ 
+CREATE PROJECTION npm_tca_iot.alert_action_parameter *//*+createtype(P)*//* 
 (
  action,
  action_parameter,
@@ -630,6 +638,7 @@ UNSEGMENTED ALL NODES;
 
 
 SELECT MARK_DESIGN_KSAFE(1);
+*/
 INSERT INTO alert_action_parameter (action, action_parameter, value) VALUES ('00d85a05-9b3a-4611-bd98-ad8e3a18ebed', 21, 'jitter@test.com');
 INSERT INTO alert_action_parameter (action, action_parameter, value) VALUES ('00dc3191-ecc6-4958-b6fb-0766b533a8dd', 21, 'tca@test.com');
 INSERT INTO alert_action_parameter (action, action_parameter, value) VALUES ('01909db2-ac15-49e5-b009-13ae5fcb6b67', 21, 'ipvpn2@twtelecom.com');
@@ -928,22 +937,22 @@ INSERT INTO alert_action_parameter (action, action_parameter, value) VALUES ('94
 INSERT INTO alert_action_parameter (action, action_parameter, value) VALUES ('e0dd7852-896d-49cb-bc82-5c788d0dfff8', 1, '40000000');
 INSERT INTO alert_action_parameter (action, action_parameter, value) VALUES ('e0dd7852-896d-49cb-bc82-5c788d0dfff8', 2, '0');
 INSERT INTO alert_action_parameter (action, action_parameter, value) VALUES ('e0dd7852-896d-49cb-bc82-5c788d0dfff8', 4, 'anand.agrawal@level3.com');
-DROP TABLE alert_history;
+-- DROP TABLE alert_history;
 CREATE TABLE npm_tca_iot.alert_history
 (
-    stamp int CONSTRAINT alert_history__stamp NOT NULL,
-    tca_instance char(36) CONSTRAINT alert_history_tca_instance NOT NULL,
+    stamp int  NOT NULL,
+    tca_instance char(36) NOT NULL,
     alert_recipient varchar(512),
-    alert_sent char(1) CONSTRAINT alert_history__alert_sent NOT NULL,
+    alert_sent char(1) NOT NULL,
     failure varchar(512),
     action_guid char(36)
 );
-
+/*
 ALTER TABLE npm_tca_iot.alert_history ADD CONSTRAINT alert_history__pk PRIMARY KEY (stamp, tca_instance); 
 
 ALTER TABLE npm_tca_iot.alert_history ADD CONSTRAINT C_FOREIGN FOREIGN KEY (tca_instance) references npm_tca_iot.tca_instance (guid);
 
-CREATE PROJECTION npm_tca_iot.alert_history /*+createtype(P)*/ 
+CREATE PROJECTION npm_tca_iot.alert_history *//*+createtype(P)*//* 
 (
  stamp,
  tca_instance,
@@ -966,6 +975,7 @@ UNSEGMENTED ALL NODES;
 
 
 SELECT MARK_DESIGN_KSAFE(1);
+*/
 INSERT INTO alert_history (stamp, tca_instance, alert_recipient, alert_sent, failure, action_guid) VALUES (1452283897, '0391ab4e-e276-41c8-a57b-f055be960ea5', 'tca@test.com', 'Y', null, '8c54f2f2-51f6-42a3-ae00-01ba5cb2f058');
 INSERT INTO alert_history (stamp, tca_instance, alert_recipient, alert_sent, failure, action_guid) VALUES (1452283897, '28f71293-5e46-4b5e-b78f-7dfc6e3fcc3b', 'tca@test.com', 'Y', null, '03f4b746-6f9b-4734-b809-8a61418f3c8a');
 INSERT INTO alert_history (stamp, tca_instance, alert_recipient, alert_sent, failure, action_guid) VALUES (1452283897, '28f71293-5e46-4b5e-b78f-7dfc6e3fcc3b', 'tca@test.com', 'N', 'No Alert State found for TCAKey: TCAKey: {circuit: 46/KFFN/106699/DEMO, evc: , qos: -1, metric: Utilization, action: DC, recipient: tca@test.com}', '8e062b07-ae48-467e-bb79-9d2cdc56ccaf');
@@ -2119,7 +2129,7 @@ INSERT INTO alert_history (stamp, tca_instance, alert_recipient, alert_sent, fai
 INSERT INTO alert_history (stamp, tca_instance, alert_recipient, alert_sent, failure, action_guid) VALUES (1453300500, '6b485259-1ad0-4a6a-86a0-6b325aa415b6', null, 'N', null, null);
 INSERT INTO alert_history (stamp, tca_instance, alert_recipient, alert_sent, failure, action_guid) VALUES (1453305300, '6b485259-1ad0-4a6a-86a0-6b325aa415b6', null, 'N', null, null);
 INSERT INTO alert_history (stamp, tca_instance, alert_recipient, alert_sent, failure, action_guid) VALUES (1453313400, '6b485259-1ad0-4a6a-86a0-6b325aa415b6', null, 'N', null, null);
-DROP TABLE alert_history_backup;
+-- DROP TABLE alert_history_backup;
 CREATE TABLE npm_tca_iot.alert_history_backup
 (
     stamp int,
@@ -2131,8 +2141,8 @@ CREATE TABLE npm_tca_iot.alert_history_backup
 );
 
 
-
-CREATE PROJECTION npm_tca_iot.alert_history_backup /*+createtype(A)*/ 
+/*
+CREATE PROJECTION npm_tca_iot.alert_history_backup *//*+createtype(A)*//* 
 (
  stamp,
  tca_instance,
@@ -2156,16 +2166,17 @@ SEGMENTED BY hash(alert_history_backup.stamp, alert_history_backup.alert_sent, a
 
 SELECT MARK_DESIGN_KSAFE(1);
 DROP TABLE criteria;
+*/
 CREATE TABLE npm_tca_iot.criteria
 (
-    id int CONSTRAINT criteria__id NOT NULL,
-    name varchar(128) CONSTRAINT criteria__name NOT NULL
+    id int NOT NULL,
+    name varchar(128) NOT NULL
 );
-
+/*
 ALTER TABLE npm_tca_iot.criteria ADD CONSTRAINT criteria__pk PRIMARY KEY (id); 
 
 
-CREATE PROJECTION npm_tca_iot.criteria /*+createtype(P)*/ 
+CREATE PROJECTION npm_tca_iot.criteria *//*+createtype(P)*//* 
 (
  id ENCODING RLE,
  name
@@ -2179,6 +2190,7 @@ UNSEGMENTED ALL NODES;
 
 
 SELECT MARK_DESIGN_KSAFE(1);
+*/
 INSERT INTO criteria (id, name) VALUES (100, 'BY_GROUP_ID');
 INSERT INTO criteria (id, name) VALUES (101, 'BY_RESOURCE_UUID');
 INSERT INTO criteria (id, name) VALUES (102, 'BY_UNIQUE_RESOURCE');
@@ -2188,17 +2200,17 @@ INSERT INTO criteria (id, name) VALUES (202, 'BY_METRIC_NAME');
 INSERT INTO criteria (id, name) VALUES (301, 'BY_ALERT_UUID');
 INSERT INTO criteria (id, name) VALUES (302, 'BY_ALERT_ACTION_TYPE');
 INSERT INTO criteria (id, name) VALUES (303, 'BY_ALERT_ACTION_UUID');
-DROP TABLE criteria_parameter;
+-- DROP TABLE criteria_parameter;
 CREATE TABLE npm_tca_iot.criteria_parameter
 (
-    criteria int CONSTRAINT criteria_parameter__id NOT NULL,
-    name varchar(128) CONSTRAINT criteria_parameter__name NOT NULL
+    criteria int  NOT NULL,
+    name varchar(128)  NOT NULL
 );
 
-
+/*
 ALTER TABLE npm_tca_iot.criteria_parameter ADD CONSTRAINT C_FOREIGN FOREIGN KEY (criteria) references npm_tca_iot.criteria (id);
 
-CREATE PROJECTION npm_tca_iot.criteria_parameter /*+createtype(P)*/ 
+CREATE PROJECTION npm_tca_iot.criteria_parameter *//*+createtype(P)*//* 
 (
  criteria ENCODING RLE,
  name
@@ -2212,6 +2224,7 @@ UNSEGMENTED ALL NODES;
 
 
 SELECT MARK_DESIGN_KSAFE(1);
+*/
 INSERT INTO criteria_parameter (criteria, name) VALUES (100, 'resource->group_id');
 INSERT INTO criteria_parameter (criteria, name) VALUES (101, 'resource->identifier');
 INSERT INTO criteria_parameter (criteria, name) VALUES (102, 'resource->circuit_id');
@@ -2227,21 +2240,21 @@ INSERT INTO criteria_parameter (criteria, name) VALUES (301, 'alert->identifier'
 INSERT INTO criteria_parameter (criteria, name) VALUES (302, 'metric->identifier');
 INSERT INTO criteria_parameter (criteria, name) VALUES (302, 'alert->action->type');
 INSERT INTO criteria_parameter (criteria, name) VALUES (303, 'alert->action->identifier');
-DROP TABLE element;
+-- DROP TABLE element;
 CREATE TABLE npm_tca_iot.element
 (
-    id int CONSTRAINT element__id NOT NULL,
-    tca_type int CONSTRAINT element__tca_type NOT NULL,
-    name varchar(128) CONSTRAINT element__name NOT NULL,
-    info varchar(128) CONSTRAINT element__info NOT NULL,
+    id int NOT NULL,
+    tca_type int NOT NULL,
+    name varchar(128) NOT NULL,
+    info varchar(128) NOT NULL,
     description varchar(512)
 );
 
-ALTER TABLE npm_tca_iot.element ADD CONSTRAINT element__pk PRIMARY KEY (id); 
+/*ALTER TABLE npm_tca_iot.element ADD CONSTRAINT element__pk PRIMARY KEY (id); 
 
 ALTER TABLE npm_tca_iot.element ADD CONSTRAINT C_FOREIGN FOREIGN KEY (tca_type) references npm_tca_iot.tca_subtype (id);
 
-CREATE PROJECTION npm_tca_iot.element /*+createtype(P)*/ 
+CREATE PROJECTION npm_tca_iot.element *//*+createtype(P)*//* 
 (
  id ENCODING RLE,
  tca_type ENCODING RLE,
@@ -2262,6 +2275,7 @@ UNSEGMENTED ALL NODES;
 
 
 SELECT MARK_DESIGN_KSAFE(1);
+*/
 INSERT INTO element (id, tca_type, name, info, description) VALUES (501, 2, 'Utilization', '%', 'HighUtilization');
 INSERT INTO element (id, tca_type, name, info, description) VALUES (502, 2, 'Latency', '', 'HighCPELatency');
 INSERT INTO element (id, tca_type, name, info, description) VALUES (503, 2, 'Jitter', 'ms', 'HighCPEJitter');
@@ -2275,22 +2289,22 @@ INSERT INTO element (id, tca_type, name, info, description) VALUES (3, 1, '3', '
 INSERT INTO element (id, tca_type, name, info, description) VALUES (4, 1, '4', '', 'Interactive/Premium');
 INSERT INTO element (id, tca_type, name, info, description) VALUES (5, 1, '5', '', 'Real Time/Dedicated/Premium Plus');
 INSERT INTO element (id, tca_type, name, info, description) VALUES (-1, 1, '-1', '', 'NA');
-DROP TABLE element_subtype;
+-- DROP TABLE element_subtype;
 CREATE TABLE npm_tca_iot.element_subtype
 (
-    id int CONSTRAINT element_subtype__id NOT NULL,
-    tca_subtype int CONSTRAINT element_subtype__tca_subtype NOT NULL,
-    name varchar(128) CONSTRAINT element_subtype__name NOT NULL,
-    info varchar(128) CONSTRAINT element_subtype__info NOT NULL,
+    id int  NOT NULL,
+    tca_subtype int NOT NULL,
+    name varchar(128) NOT NULL,
+    info varchar(128) NOT NULL,
     description varchar(512)
 );
-
+/*
 ALTER TABLE npm_tca_iot.element_subtype ADD CONSTRAINT element_subtype__pk PRIMARY KEY (id); 
 ALTER TABLE npm_tca_iot.element_subtype ADD CONSTRAINT element_subtype__name__unique UNIQUE (name); 
 
 ALTER TABLE npm_tca_iot.element_subtype ADD CONSTRAINT C_FOREIGN FOREIGN KEY (tca_subtype) references npm_tca_iot.tca_subtype (id);
 
-CREATE PROJECTION npm_tca_iot.element_subtype /*+createtype(P)*/ 
+CREATE PROJECTION npm_tca_iot.element_subtype *//*+createtype(P)*//* 
 (
  id ENCODING RLE,
  tca_subtype ENCODING RLE,
@@ -2310,7 +2324,7 @@ AS
 UNSEGMENTED ALL NODES;
 
 
-SELECT MARK_DESIGN_KSAFE(1);
+SELECT MARK_DESIGN_KSAFE(1);*/
 INSERT INTO element_subtype (id, tca_subtype, name, info, description) VALUES (1, 1, 'Primitive', '', 'metric type with single metric');
 INSERT INTO element_subtype (id, tca_subtype, name, info, description) VALUES (501, 2, 'Watch', '', 'alert that just acts for warning level');
 INSERT INTO element_subtype (id, tca_subtype, name, info, description) VALUES (502, 2, 'Warning', '', 'alert that just acts for critical alert level');
@@ -2323,21 +2337,22 @@ INSERT INTO element_subtype (id, tca_subtype, name, info, description) VALUES (2
 INSERT INTO element_subtype (id, tca_subtype, name, info, description) VALUES (2004, 4, 'HT', 'Pacific/Honolulu', 'US Hawaiian Time');
 INSERT INTO element_subtype (id, tca_subtype, name, info, description) VALUES (2005, 4, 'MT', 'America/Denver', 'US Mountain Time');
 INSERT INTO element_subtype (id, tca_subtype, name, info, description) VALUES (2006, 4, 'PT', 'America/Los_Angeles', 'US Pacific Time');
-DROP TABLE metric;
+/*DROP TABLE metric;
+*/
 CREATE TABLE npm_tca_iot.metric
 (
-    guid char(36) CONSTRAINT metric__guid NOT NULL,
-    metric int CONSTRAINT metric__metric NOT NULL,
-    threshold_type int CONSTRAINT metric__threshold_type NOT NULL,
-    threshold varchar(128) CONSTRAINT metric__threshold NOT NULL,
-    level int CONSTRAINT metric__level NOT NULL
+    guid char(36) NOT NULL,
+    metric int NOT NULL,
+    threshold_type int NOT NULL,
+    threshold varchar(128) NOT NULL,
+    level int NOT NULL
 );
-
+/*
 ALTER TABLE npm_tca_iot.metric ADD CONSTRAINT metric__pk PRIMARY KEY (guid); 
 
 ALTER TABLE npm_tca_iot.metric ADD CONSTRAINT C_FOREIGN FOREIGN KEY (threshold_type) references npm_tca_iot.threshold_type (id);
 
-CREATE PROJECTION npm_tca_iot.metric /*+createtype(P)*/ 
+CREATE PROJECTION npm_tca_iot.metric *//*+createtype(P)*//* 
 (
  guid,
  metric ENCODING RLE,
@@ -2358,7 +2373,8 @@ AS
 UNSEGMENTED ALL NODES;
 
 
-SELECT MARK_DESIGN_KSAFE(1);
+SELECT MARK_DESIGN_KSAFE(1);*/
+
 INSERT INTO metric (guid, metric, threshold_type, threshold, level) VALUES ('0332c86b-bacd-464e-8727-6646f83ca3e4', 502, 1, '100X', 501);
 INSERT INTO metric (guid, metric, threshold_type, threshold, level) VALUES ('03ac7c56-172c-48e5-8ba7-5df5e5e2e120', 504, 1, '96.0', 501);
 INSERT INTO metric (guid, metric, threshold_type, threshold, level) VALUES ('03ed601e-2808-4b96-ab86-f926d23cb74a', 502, 1, '100X', 501);
@@ -2581,22 +2597,23 @@ INSERT INTO metric (guid, metric, threshold_type, threshold, level) VALUES ('0be
 INSERT INTO metric (guid, metric, threshold_type, threshold, level) VALUES ('d500dc34-7466-406d-8110-69496581ece9', 501, 1, '80.0', 502);
 INSERT INTO metric (guid, metric, threshold_type, threshold, level) VALUES ('b8f06941-3e97-480e-b8ae-54496db5b4af', 501, 1, '70.0', 501);
 INSERT INTO metric (guid, metric, threshold_type, threshold, level) VALUES ('71184118-137d-450d-8a9b-b8ca6453be6e', 501, 1, '50.0', 501);
-DROP TABLE metric_threshold;
+/*DROP TABLE metric_threshold;
+*/
 CREATE TABLE npm_tca_iot.metric_threshold
 (
-    element int CONSTRAINT metric_threshold__element NOT NULL,
-    element_subtype int CONSTRAINT metric_threshold__element_subtype NOT NULL,
-    threshold_type int CONSTRAINT metric_threshold__threshold_type NOT NULL,
-    threshold varchar(128) CONSTRAINT metric_threshold__threshold NOT NULL
+    element int NOT NULL,
+    element_subtype int NOT NULL,
+    threshold_type int NOT NULL,
+    threshold varchar(128) NOT NULL
 );
-
+/*
 ALTER TABLE npm_tca_iot.metric_threshold ADD CONSTRAINT metric_threshold__pk PRIMARY KEY (element, element_subtype, threshold_type); 
 
 ALTER TABLE npm_tca_iot.metric_threshold ADD CONSTRAINT C_FOREIGN FOREIGN KEY (element) references npm_tca_iot.element (id);
 ALTER TABLE npm_tca_iot.metric_threshold ADD CONSTRAINT C_FOREIGN_1 FOREIGN KEY (element_subtype) references npm_tca_iot.element_subtype (id);
 ALTER TABLE npm_tca_iot.metric_threshold ADD CONSTRAINT C_FOREIGN_2 FOREIGN KEY (threshold_type) references npm_tca_iot.threshold_type (id);
 
-CREATE PROJECTION npm_tca_iot.metric_threshold /*+createtype(P)*/ 
+CREATE PROJECTION npm_tca_iot.metric_threshold *//*+createtype(P)*//* 
 (
  element ENCODING RLE,
  element_subtype ENCODING RLE,
@@ -2615,7 +2632,8 @@ AS
 UNSEGMENTED ALL NODES;
 
 
-SELECT MARK_DESIGN_KSAFE(1);
+SELECT MARK_DESIGN_KSAFE(1);*/
+
 INSERT INTO metric_threshold (element, element_subtype, threshold_type, threshold) VALUES (501, 1, 1, '50.0');
 INSERT INTO metric_threshold (element, element_subtype, threshold_type, threshold) VALUES (501, 1, 1, '60.0');
 INSERT INTO metric_threshold (element, element_subtype, threshold_type, threshold) VALUES (501, 1, 1, '70.0');
@@ -2652,21 +2670,22 @@ INSERT INTO metric_threshold (element, element_subtype, threshold_type, threshol
 INSERT INTO metric_threshold (element, element_subtype, threshold_type, threshold) VALUES (502, 1, 1, '85x');
 INSERT INTO metric_threshold (element, element_subtype, threshold_type, threshold) VALUES (502, 1, 1, '100x');
 INSERT INTO metric_threshold (element, element_subtype, threshold_type, threshold) VALUES (502, 1, 1, '200x');
-DROP TABLE resource;
+/*DROP TABLE resource;
+*/
 CREATE TABLE npm_tca_iot.resource
 (
-    guid char(36) CONSTRAINT resource__guid NOT NULL,
-    circuit varchar(256) CONSTRAINT resource__circuit NOT NULL,
-    virtual_circuit varchar(256) CONSTRAINT resource__virtual_circuit NOT NULL,
+    guid char(36) NOT NULL,
+    circuit varchar(256) NOT NULL,
+    virtual_circuit varchar(256)  NOT NULL,
     bclli varchar(16),
     rgroup varchar(256)
 );
-
+/*
 ALTER TABLE npm_tca_iot.resource ADD CONSTRAINT resource__pk PRIMARY KEY (guid); 
 ALTER TABLE npm_tca_iot.resource ADD CONSTRAINT resource_unique UNIQUE (circuit, bclli); 
 
 
-CREATE PROJECTION npm_tca_iot.resource /*+createtype(P)*/ 
+CREATE PROJECTION npm_tca_iot.resource *//*+createtype(P)*//* 
 (
  guid,
  circuit,
@@ -2686,7 +2705,8 @@ AS
 UNSEGMENTED ALL NODES;
 
 
-SELECT MARK_DESIGN_KSAFE(1);
+SELECT MARK_DESIGN_KSAFE(1);*/
+
 INSERT INTO resource (guid, circuit, virtual_circuit, bclli, rgroup) VALUES ('8a031ec8-960e-4283-9e91-1e2947ab3d41', '40/KEFN/109886/TWCS', '', 'DNVRCO26', '');
 INSERT INTO resource (guid, circuit, virtual_circuit, bclli, rgroup) VALUES ('2d2a4770-37d8-4bb3-864f-ba7866b5db05', '44/KFFN/124278/TWCS', '', 'FRBRTXJG', '');
 INSERT INTO resource (guid, circuit, virtual_circuit, bclli, rgroup) VALUES ('32d560fc-6ea2-404f-905d-e53700e5557c', '46/KFFN/106699/DEMO', 'VLXX/140162/DEMO', 'IRVECAJT', '');
@@ -2723,26 +2743,26 @@ INSERT INTO resource (guid, circuit, virtual_circuit, bclli, rgroup) VALUES ('1e
 INSERT INTO resource (guid, circuit, virtual_circuit, bclli, rgroup) VALUES ('9a627fcc-b60b-4a37-8211-2f1a2191648f', '25/KFFN/000002/DEMO', '', '', '');
 INSERT INTO resource (guid, circuit, virtual_circuit, bclli, rgroup) VALUES ('c23c7d16-3b3f-4f20-a246-2c2247649c1d', '25/KFFN/000003/DEMO', '', '', '');
 INSERT INTO resource (guid, circuit, virtual_circuit, bclli, rgroup) VALUES ('e1826a73-2131-4c51-a06c-f0e93e867a52', '25/KFFN/000004/DEMO', '', '', '');
-DROP TABLE tca_instance;
+/*DROP TABLE tca_instance;*/
 CREATE TABLE npm_tca_iot.tca_instance
 (
-    guid char(36) CONSTRAINT tca_instance__guid NOT NULL,
-    resource char(36) CONSTRAINT tca_instance__resource NOT NULL,
-    metric char(36) CONSTRAINT tca_instance__metric NOT NULL,
-    qos int CONSTRAINT tca_instance__qos NOT NULL,
-    owner varchar(256) CONSTRAINT tca_instance__owner NOT NULL,
-    created_on int CONSTRAINT tca_instance__created_on NOT NULL,
-    modified_by varchar(256) CONSTRAINT tca_instance__modified_by NOT NULL,
-    modified_on int CONSTRAINT tca_instance__modified_on NOT NULL
+    guid char(36) NOT NULL,
+    resource char(36)   NOT NULL,
+    metric char(36)  NOT NULL,
+    qos int  NOT NULL,
+    owner varchar(256)   NOT NULL,
+    created_on int  NOT NULL,
+    modified_by varchar(256)   NOT NULL,
+    modified_on int  NOT NULL
 );
-
+/*
 ALTER TABLE npm_tca_iot.tca_instance ADD CONSTRAINT tca_instance__pk PRIMARY KEY (guid); 
 ALTER TABLE npm_tca_iot.tca_instance ADD CONSTRAINT tca_instance__unique UNIQUE (resource, metric, qos); 
 
 ALTER TABLE npm_tca_iot.tca_instance ADD CONSTRAINT C_FOREIGN FOREIGN KEY (resource) references npm_tca_iot.resource (guid);
 ALTER TABLE npm_tca_iot.tca_instance ADD CONSTRAINT C_FOREIGN_1 FOREIGN KEY (metric) references npm_tca_iot.metric (guid);
 
-CREATE PROJECTION npm_tca_iot.tca_instance /*+createtype(P)*/ 
+CREATE PROJECTION npm_tca_iot.tca_instance *//*+createtype(P)*//* 
 (
  guid,
  resource,
@@ -2770,7 +2790,8 @@ AS
 UNSEGMENTED ALL NODES;
 
 
-SELECT MARK_DESIGN_KSAFE(1);
+SELECT MARK_DESIGN_KSAFE(1);*/
+
 INSERT INTO tca_instance (guid, resource, metric, qos, owner, created_on, modified_by, modified_on) VALUES ('00584d42-9b81-4a3f-8747-fceec218e5d1', '4dfe429a-6b51-4a21-a355-67fe47171c34', 'be0036f8-0046-49c3-8d74-72a5f28448ac', 1, 'sptest@test.com', 1452717672, 'sptest@test.com', 1452717672);
 INSERT INTO tca_instance (guid, resource, metric, qos, owner, created_on, modified_by, modified_on) VALUES ('0373ba20-436f-416a-84f0-e48000b37e96', '4dfe429a-6b51-4a21-a355-67fe47171c34', 'd26c42af-09f7-4fcd-bbde-e44227fea035', 5, 'sptest@test.com', 1452717672, 'sptest@test.com', 1452717672);
 INSERT INTO tca_instance (guid, resource, metric, qos, owner, created_on, modified_by, modified_on) VALUES ('0391ab4e-e276-41c8-a57b-f055be960ea5', '32d560fc-6ea2-404f-905d-e53700e5557c', '59292fff-da8b-408c-87c5-bae9bfab3e26', 1, 'tca@test.com', 1452283560, 'tca@test.com', 1452283560);
@@ -2993,19 +3014,19 @@ INSERT INTO tca_instance (guid, resource, metric, qos, owner, created_on, modifi
 INSERT INTO tca_instance (guid, resource, metric, qos, owner, created_on, modified_by, modified_on) VALUES ('8dcd94f1-75ca-4a7b-b4ed-4a56bd70a699', 'ff4d0ab4-b1c6-46c1-8a4f-4dad1685a408', '0becc6e9-9442-4ba7-81b4-6335a586b0ec', -1, 'tca@test.com', 1453237352, 'tca@test.com', 1453237352);
 INSERT INTO tca_instance (guid, resource, metric, qos, owner, created_on, modified_by, modified_on) VALUES ('6236fdb9-b6f6-4cc4-91d7-522ac751e290', 'e20eb299-b6d4-46f6-ab87-f066cdd41681', 'b8f06941-3e97-480e-b8ae-54496db5b4af', -1, 'emdemo@level3.com', 1453238128, 'emdemo@level3.com', 1453238128);
 INSERT INTO tca_instance (guid, resource, metric, qos, owner, created_on, modified_by, modified_on) VALUES ('c6e0cfc4-ba92-4bef-b424-ae3912468228', 'e1826a73-2131-4c51-a06c-f0e93e867a52', '71184118-137d-450d-8a9b-b8ca6453be6e', -1, 'tca@test.com', 1453239269, 'tca@test.com', 1453239269);
-DROP TABLE tca_subtype;
+/*DROP TABLE tca_subtype;*/
 CREATE TABLE npm_tca_iot.tca_subtype
 (
-    id int CONSTRAINT tca_subtype__id NOT NULL,
-    tca_type int CONSTRAINT tca_subtype__tca_type NOT NULL,
-    name varchar(128) CONSTRAINT tca_subtype__name NOT NULL
+    id int  NOT NULL,
+    tca_type int  NOT NULL,
+    name varchar(128)   NOT NULL
 );
-
+/*
 ALTER TABLE npm_tca_iot.tca_subtype ADD CONSTRAINT tca_subtype__pk PRIMARY KEY (id); 
 
 ALTER TABLE npm_tca_iot.tca_subtype ADD CONSTRAINT C_FOREIGN FOREIGN KEY (tca_type) references npm_tca_iot.tca_type (id);
 
-CREATE PROJECTION npm_tca_iot.tca_subtype /*+createtype(P)*/ 
+CREATE PROJECTION npm_tca_iot.tca_subtype *//*+createtype(P)*//* 
 (
  id ENCODING RLE,
  tca_type ENCODING RLE,
@@ -3021,22 +3042,22 @@ AS
 UNSEGMENTED ALL NODES;
 
 
-SELECT MARK_DESIGN_KSAFE(1);
+SELECT MARK_DESIGN_KSAFE(1);*/
 INSERT INTO tca_subtype (id, tca_type, name) VALUES (1, 2, 'METRIC_TYPE');
 INSERT INTO tca_subtype (id, tca_type, name) VALUES (2, 2, 'LEVEL');
 INSERT INTO tca_subtype (id, tca_type, name) VALUES (3, 3, 'PERIOD');
 INSERT INTO tca_subtype (id, tca_type, name) VALUES (4, 3, 'TIMEZONE');
-DROP TABLE tca_type;
+/*DROP TABLE tca_type;*/
 CREATE TABLE npm_tca_iot.tca_type
 (
-    id int CONSTRAINT tca_type__id NOT NULL,
-    element varchar(128) CONSTRAINT tca_type__element NOT NULL
+    id int   NOT NULL,
+    element varchar(128) NOT NULL
 );
-
+/*
 ALTER TABLE npm_tca_iot.tca_type ADD CONSTRAINT tca_type__pk PRIMARY KEY (id); 
 
 
-CREATE PROJECTION npm_tca_iot.tca_type /*+createtype(P)*/ 
+CREATE PROJECTION npm_tca_iot.tca_type *//*+createtype(P)*//* 
 (
  id ENCODING RLE,
  element
@@ -3049,25 +3070,26 @@ AS
 UNSEGMENTED ALL NODES;
 
 
-SELECT MARK_DESIGN_KSAFE(1);
+SELECT MARK_DESIGN_KSAFE(1);*/
 INSERT INTO tca_type (id, element) VALUES (1, 'QOS');
 INSERT INTO tca_type (id, element) VALUES (2, 'METRIC');
 INSERT INTO tca_type (id, element) VALUES (3, 'ALERT');
 INSERT INTO tca_type (id, element) VALUES (4, 'ACTION');
-DROP TABLE threshold_type;
+/*DROP TABLE threshold_type;
+*/
 CREATE TABLE npm_tca_iot.threshold_type
 (
-    id int CONSTRAINT threshold_type__id NOT NULL,
-    name varchar(128) CONSTRAINT threshold_type__name NOT NULL,
-    operator varchar(5) CONSTRAINT threshold_type__operator NOT NULL,
+    id int NOT NULL,
+    name varchar(128) NOT NULL,
+    operator varchar(5) NOT NULL,
     detail varchar(512)
 );
-
+/*
 ALTER TABLE npm_tca_iot.threshold_type ADD CONSTRAINT threshold_type__pk PRIMARY KEY (id); 
 ALTER TABLE npm_tca_iot.threshold_type ADD CONSTRAINT threshold_type__name__unique UNIQUE (name); 
 
 
-CREATE PROJECTION npm_tca_iot.threshold_type /*+createtype(P)*/ 
+CREATE PROJECTION npm_tca_iot.threshold_type *//*+createtype(P)*//* 
 (
  id ENCODING RLE,
  name,
@@ -3084,5 +3106,5 @@ AS
 UNSEGMENTED ALL NODES;
 
 
-SELECT MARK_DESIGN_KSAFE(1);
+SELECT MARK_DESIGN_KSAFE(1);*/
 INSERT INTO threshold_type (id, name, operator, detail) VALUES (1, 'Above', '>=', 'above threshold');
