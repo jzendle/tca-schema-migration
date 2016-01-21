@@ -15,20 +15,20 @@ SELECT
              AA.action_id as aa_action_id, 
              AA.level as aa_level, 
              AA.value as aa_value, 
+             AAP.a_id as aap_a_id, 
+             AAP.parameter_id as aap_parameter_id, 
+             AAP.value as aap_value, 
+             TAP.id as tap_id, 
+             TAP.name as tap_name, 
+             TAP.unit as tap_unit,
              TM.name as tm_name, 
              MA.qos as ma_qos, 
              MA.warn as ma_warn, 
              MA.fail as ma_fail, 
              TM.display_name as tm_display_name, 
              TM.unit as tm_unit, 
-             
              TA.name as ta_name, 
-             TA.unit as ta_unit, 
-             AAP.a_id as aap_a_id, 
-             TAP.id as tap_id, 
-             AAP.value as aap_value, 
-             TAP.name as tap_name, 
-             TAP.unit as tap_unit 
+             TA.unit as ta_unit
           FROM 
              npm_dba.circuit_alert C 
              join npm_dba.metric_alert MA on  MA.c_id = C.c_id 
