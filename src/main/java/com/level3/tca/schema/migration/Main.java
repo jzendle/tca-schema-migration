@@ -9,8 +9,10 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -24,7 +26,7 @@ public class Main {
 	Long prevThresholdActinParameterId = null; // BUSINESS_HRS, America/Chicago , etc
 	Long prevActionAlertParameterId = null; // BUSINESS_HRS, America/Chicago , etc
 
-	Boolean firstAAP = null;
+	// Boolean firstAAP = null;
 	UUID resUUID, tcaUUID, metricUUID, alertUUID, actionUUID, alertActionParamUUID = null;
 
 	private ResourceMgr resources = new ResourceMgr();
@@ -40,64 +42,59 @@ public class Main {
 		Connection conn = Db.createConnection();
 		ResultSet rs = Db.getEmAll(conn);
 
+    Map <String,String> alertParms = new HashMap<>(); 
+
 		while (rs.next()) {
-			// Long circuitId = rs.getLong("ma_c_id");
 			Long metricId = rs.getLong("ma_m_id");
 			Long actionAlertId = rs.getLong("aa_a_id");
-			Long actionAlertParameterId = rs.getLong("aap_a_id");
-			Long thresholdActinParameterId = rs.getLong("tap_id");
-
-//      if (!metricId.equals(prevMetricId)) {
-//        prevMetricId = metricId;
-//        tcaUUID = UUID.randomUUID();
-//        resUUID = resources.addResource(rs.getString("circuit_id"), rs.getString("uuid"));
-//        metricUUID = UUID.randomUUID();
-//
-//		  System.out.println("new metric id: " + metricId);
-//        // insertTcaInstance(rs);
-//      }
-			if (!Objects.equals(metricId, prevMetricId)) { // maps to metric
+			int thresholdActinParameterId = rs.getInt("tap_id");
+			if (!Objects.equals(metricId, prevMetricId)) { // maps to new TCA
 				prevMetricId = metricId;
-				firstAAP = false;
-				System.out.println("new metric id: " + metricId + " CREATE TCA AND METRIC");
-//        insertMetric(rs);
+				// firstAAP = false;
+				//System.out.println("new metric id: " + metricId + " CREATE TCA, RESOURCE AND METRIC");
 			}
-//			if (!Objects.equals(actionAlertId, prevActionAlertId)) { // maps to action
-//				prevActionAlertId = actionAlertId;
-//				System.out.println("   new actionAlertId id: " + actionAlertId);
-//
-////        insertAction(rs);
+			if (!Objects.equals(actionAlertId, prevActionAlertId)) { // maps to action
+				prevActionAlertId = actionAlertId;
+				// firstAAP =true;
+				//System.out.println("      new actionAlertId id: " + actionAlertId + " CREATE ALERT");
+  //				System.out.println("      ALERT PARAMS: " + alertParms.toString());
+        //alertParms.clear();
+			}
+
+      // collect name and value as these are the only variants across metric id and action alert id
+      String tapName = rs.getString("tap_name");
+      String aapValue = rs.getString("aap_value");
+      alertParms.put(tapName, aapValue);
+  
+      if ( thresholdActinParameterId == 2 ) {
+        System.out.println("EMAIL metric id: " + metricId + " + actionAlertId id: " + actionAlertId + " parms: " + alertParms.toString());
+      }
+      if ( thresholdActinParameterId == 8 ) {
+        System.out.println("DC metric id: " + metricId + " + actionAlertId id: " + actionAlertId + " parms: " + alertParms.toString());
+      }
+//      if ( firstAAP == true) {
+//				firstAAP = false;
+//				System.out.println("         CREATE ACTION");
 //			}
-			if (!Objects.equals(actionAlertParameterId, prevActionAlertParameterId)) { // maps to action
-				prevActionAlertParameterId = actionAlertParameterId;
-				firstAAP =true;
-				System.out.println("      new actionAlertParameterId id: " + actionAlertParameterId + " CREATE ALERT");
+      /*
 
-//        insertAction(rs);
-			}
-
-			if ( firstAAP == true) {
-				firstAAP = false;
-				System.out.println("         CREATE ACTION");
-			}
-			System.out.println("         thresholdActinParameterId: " + thresholdActinParameterId + " CREATE ALERT_ACTION_PARAMETER");
-			/*		switch(thresholdActinParameterId) {
-			case (1):
+			System.out.print("         thresholdActinParameterId: " + thresholdActinParameterId + " CREATE ALERT_ACTION_PARAMETER");
+			switch(thresholdActinParameterId) {
+			case 1:
+        System.out.println(" notification_period");
 				break;
 			case 2:
+        System.out.println(" timezone");
 				break;
 			case 3:
+        System.out.println(" notification_period");
 				break;
 			default:
 				System.out.println("      ");
-				break
-				
-		}
-      if (!Objects.equals(thresholdActinParameterId, prevThresholdActinParameterId)) {
-        prevThresholdActinParameterId = thresholdActinParameterId;
-        newThresholdActionParameter(rs);
+				break;
       }
-			 */
+      System.out.println();
+			*/	
 		}
 
 	}

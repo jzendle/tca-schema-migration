@@ -15,7 +15,7 @@ SELECT
              AA.action_id as aa_action_id, 
              AA.level as aa_level, 
              AA.value as aa_value, 
-             AAP.a_id as aap_a_id, 
+             -- AAP.a_id as aap_a_id, 
              AAP.parameter_id as aap_parameter_id, 
              AAP.value as aap_value, 
              TAP.id as tap_id, 
@@ -37,5 +37,6 @@ SELECT
              JOIN npm_dba.action_alert_parameter AAP ON AAP.a_id = AA.a_id 
              JOIN npm_dba.threshold_action TA ON  TA.id = AA.action_id 
              JOIN npm_dba.threshold_action_parameter TAP ON  TAP.id = AAP.parameter_id 
+             -- where aa.action_id = 2
              where circuit_id ='05/KEFN/102871/TWCS' 
-          ORDER BY ma_m_id, aa_a_id, aap_a_id, tap_id
+          ORDER BY ma_m_id, aa_a_id, tap_id
