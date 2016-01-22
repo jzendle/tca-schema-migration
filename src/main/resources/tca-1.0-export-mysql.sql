@@ -1,3 +1,5 @@
+create schema npm_dba;
+
 -- DROP TABLE action_alert;
 CREATE TABLE npm_dba.action_alert
 (

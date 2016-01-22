@@ -1,7 +1,7 @@
-
+-- drop schema npm_tca_iot;
 
 -- create schema npm_tca_iot;
-create schema npm_tca_iot;
+-- create schema npm_tca_iot;
 
 -- DROP TABLE action;
 CREATE TABLE npm_tca_iot.action
