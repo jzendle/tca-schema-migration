@@ -1,42 +1,42 @@
-SELECT 
-             DISTINCT 
-             
-             -- C.c_id, 
-             -- C.create_date, 
-             -- C.create_email, 
-             -- C.update_date, 
-             -- C.update_email, 
-             MA.m_id as ma_m_id,
-             MA.c_id as ma_c_id, 
-             MA.metric_id as ma_met_id,
-             C.circuit_id as circuit_id, 
-             -- C.uuid,
-             AA.a_id as aa_a_id, 
-             AA.action_id as aa_action_id, 
-             AA.level as aa_level, 
-             AA.value as aa_value, 
-             -- AAP.a_id as aap_a_id, 
-             AAP.parameter_id as aap_parameter_id, 
-             AAP.value as aap_value, 
-             TAP.id as tap_id, 
-             TAP.name as tap_name, 
-             TAP.unit as tap_unit,
-             TM.name as tm_name, 
-             MA.qos as ma_qos, 
-             MA.warn as ma_warn, 
-             MA.fail as ma_fail, 
-             TM.display_name as tm_display_name, 
-             TM.unit as tm_unit, 
-             TA.name as ta_name, 
-             TA.unit as ta_unit
-          FROM 
-             npm_dba.circuit_alert C 
-             join npm_dba.metric_alert MA on  MA.c_id = C.c_id 
-             join npm_dba.threshold_metric TM on TM.id = MA.metric_id 
-             JOIN npm_dba.action_alert AA ON MA.m_id = AA.m_id 
-             JOIN npm_dba.action_alert_parameter AAP ON AAP.a_id = AA.a_id 
-             JOIN npm_dba.threshold_action TA ON  TA.id = AA.action_id 
-             JOIN npm_dba.threshold_action_parameter TAP ON  TAP.id = AAP.parameter_id 
-             -- where aa.action_id = 2
-             where circuit_id ='05/KEFN/102871/TWCS' 
-          ORDER BY ma_m_id, aa_a_id, tap_id
+SELECT DISTINCT
+    MA.m_id      AS ma_m_id,
+    MA.c_id      AS ma_c_id,
+    MA.metric_id AS ma_met_id,
+    C.circuit_id AS circuit_id,
+    C.uuid,
+    C.c_id,
+    C.create_date,
+    C.create_email,
+    C.update_date,
+    C.update_email,
+    AA.a_id          AS aa_a_id,
+    AA.action_id     AS aa_action_id,
+    AA.level         AS aa_level,
+    AA.value         AS aa_value,
+    AAP.parameter_id AS aap_parameter_id,
+    AAP.value        AS aap_value,
+    TAP.id           AS tap_id,
+    TAP.name         AS tap_name,
+    TAP.unit         AS tap_unit,
+    TM.name          AS tm_name,
+    MA.qos           AS ma_qos,
+    MA.warn          AS ma_warn,
+    MA.fail          AS ma_fail,
+    TM.display_name  AS tm_display_name,
+    TM.unit          AS tm_unit,
+    TA.name          AS ta_name,
+    TA.unit          AS ta_unit
+FROM npm_dba.circuit_alert C
+JOIN npm_dba.metric_alert MA ON MA.c_id = C.c_id
+JOIN npm_dba.threshold_metric TM ON TM.id = MA.metric_id
+JOIN npm_dba.action_alert AA ON MA.m_id = AA.m_id
+JOIN npm_dba.action_alert_parameter AAP ON AAP.a_id = AA.a_id
+JOIN npm_dba.threshold_action TA ON TA.id = AA.action_id
+JOIN npm_dba.threshold_action_parameter TAP ON TAP.id = AAP.parameter_id
+    -- where aa.action_id = 2
+WHERE
+    circuit_id ='05/KEFN/102871/TWCS'
+ORDER BY
+    ma_m_id,
+    aa_a_id,
+    tap_id

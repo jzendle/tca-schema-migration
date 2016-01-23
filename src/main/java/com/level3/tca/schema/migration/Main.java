@@ -9,13 +9,9 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -44,8 +40,6 @@ public class Main {
     try ( Connection conn = Db.createConnection()) {
       
       resources = new ResourceMgr(conn);
-
-      System.out.println(resources);
       
       rs = Db.getAllTcas(conn);
 
@@ -85,14 +79,14 @@ public class Main {
 
     StringBuffer buf = new StringBuffer();
     buf.append("insert into tca_instance ( guid, resource, metric, qos, owner, created_on, modified_by, modified_on) values ( "
-            + stringize(tcaUuid)
-            + stringize(resUuid)
-            + stringize(metricUuid)
-            + stringize(rs.getString("qos"))
-            + stringize(rs.getString("create_email"))
-            + rs.getTimestamp("create_date").getTime()
-            + stringize(rs.getString("update_email"))
-            + rs.getTimestamp("update_date").getTime()
+            + Util.stringize(tcaUuid)
+            + Util.stringize(resUuid)
+            + Util.stringize(metricUuid)
+            + Util.integerize(rs.getString("ma_qos"))
+            + Util.stringize(rs.getString("create_email"))
+            + Util.epochize(rs.getTimestamp("create_date"))
+            + Util.stringize(rs.getString("update_email"))
+            + Util.epochize(rs.getTimestamp("update_date"),false)
             + " ) ");
     return buf.toString();
   }
@@ -102,19 +96,22 @@ public class Main {
     Map map = resources.makeResourceMap(rs.getString("circuit_id"), rs.getString("uuid"));
     StringBuffer buf = new StringBuffer();
     buf.append("insert into resource ( guid, circuit, virtual_circuit, bclli, rgroup ) values ( "
-            + stringize(map.get("uuid"))
-            + stringize(map.get("circuit"))
-            + stringize(map.get("vcircuit"))
-            + stringize(map.get("clli"))
-            + stringize("")
+            + Util.stringize(map.get(ResourceMgr.GUID))
+            + Util.stringize(map.get(ResourceMgr.CIRCUIT))
+            + Util.stringize(map.get(ResourceMgr.VCIRCUIT))
+            + Util.stringize(map.get(ResourceMgr.CLLI))
+            + Util.stringize("")
             + " ) ");
     return buf.toString();
   }
 
-  private void insertMetric(ResultSet rs) {
+  private void insertMetric(UUID metricUUID, ResultSet rs) throws SQLException {
     StringBuffer buf = new StringBuffer();
-    buf.append("INSERT INTO metric (guid, metric, threshold_type, threshold, level) VALUES ( " + "");
-    // + '', 0, 0, '', 0);
+    buf.append("INSERT INTO metric (guid, metric, threshold_type, threshold, level) VALUES ( " 
+            + Util.stringize(metricUUID)
+            + Util.integerize(rs.getString("tm_name"))
+            + Util.integerize("1")   // ABOVE
+     + " ) " ); // + '', 0, 0, '', 0);
 
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
@@ -127,18 +124,6 @@ public class Main {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
-  String stringize(Object obj, Boolean... comma) {
-    Boolean ret = true;
-    if (comma.length > 0) {
-      ret = (Boolean) comma[0];
-    }
-    return "'" + obj.toString() + "'" + (ret == true ? "," : "");
-  }
-
-  String toEpoch(String timestamp, Boolean comma) {
-    return "(SELECT EXTRACT(EPOCH FROM TIMESTAMP '" + timestamp + "') " + (comma == true ? "," : "");
-  }
-
   private void createTcaInserts(ResultSet rs) throws SQLException {
     UUID tcaUUID = UUID.randomUUID();
     UUID metricUUID = UUID.randomUUID();
@@ -146,9 +131,14 @@ public class Main {
     UUID actionUUID = UUID.randomUUID();
     UUID alertActionParamUUID = UUID.randomUUID();
 
-    String res = insertResource(rs);
+    String circuitId = rs.getString("circuit_id");
+    String uuid = rs.getString("uuid");
 
-    System.out.println("res");
+    UUID resUUID = resources.lookupResource(circuitId, uuid);
+    
+    String res = insertTcaInstance(tcaUUID, resUUID, metricUUID, rs);
+
+    System.out.println(res);
 
   }
 
