@@ -72,7 +72,6 @@ public class Util {
 
 	static int tzToInt(String tz) {
 
-		System.out.println("tz: " + tz);
 		switch (tz) {
 			case "America/Los_Angeles":
 				return 2006;
@@ -121,7 +120,7 @@ public class Util {
 			ret.add(vals[1]);
 		}
 		if (pairs.length > 1) {
-			String [] vals = pairs[0].split("::");
+			String [] vals = pairs[1].split("::");
 			if ( vals.length != 2) throw new IllegalArgumentException(in);
 			ret.add(vals[0]);
 			ret.add(vals[1]);
