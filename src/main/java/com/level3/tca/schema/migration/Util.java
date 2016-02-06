@@ -8,13 +8,22 @@ package com.level3.tca.schema.migration;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  *
  * @author zendle.joe
  */
 public class Util {
-
+   
+   private static Double uuidSeed = new Double(0);
+   private static byte [] bytes = new byte[1];
+   
+   public static String uuidFromSeed() {
+      bytes[0] = (uuidSeed++).byteValue();
+      return UUID.nameUUIDFromBytes(bytes).toString();
+   }
+   
 	public static String integerize(Object obj, Boolean... comma) {
 		Boolean ret = true;
 		if (comma.length > 0) {

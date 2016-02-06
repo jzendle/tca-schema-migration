@@ -24,14 +24,14 @@ public final class ResourceMgr {
   public final static String CLLI = "clli";
   public final static String GUID = "guid";
 
-  Map<MultiKey, UUID> resources = new HashMap<>();
+  Map<MultiKey, String> resources = new HashMap<>();
 
   public ResourceMgr(Connection conn) {
     try (ResultSet rs = Db.getResources(conn)) {
       while (rs.next()) {
         String circuitId = rs.getString("circuit_id");
         String uuid = rs.getString("uuid");
-        resources.put(makeResourceKey(circuitId, uuid), UUID.randomUUID());
+        resources.put(makeResourceKey(circuitId, uuid), Util.uuidFromSeed());
       }
 
     } catch (SQLException e) {
@@ -65,15 +65,15 @@ public final class ResourceMgr {
     Map<String,String> map = new HashMap<>();
     MultiKey key = makeResourceKey(circuit, concatField);
     
-    UUID uuid = resources.get(key);
+    String uuid = resources.get(key);
     map.put(CIRCUIT, (String) key.getKey(0));
     map.put(VCIRCUIT, (String) key.getKey(1));
     map.put(CLLI, (String) key.getKey(2));
-    map.put(GUID, uuid.toString());
+    map.put(GUID, uuid);
     return map;
 
   }
-  public UUID lookupResource(String circuit, String concatField) {
+  public String lookupResource(String circuit, String concatField) {
     return resources.get(makeResourceKey(circuit, concatField));
   }
 }

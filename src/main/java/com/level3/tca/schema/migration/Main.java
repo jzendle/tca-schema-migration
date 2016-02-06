@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 
 /**
  *
@@ -66,11 +65,11 @@ public class Main {
          try (ResultSet rs = Db.getAllTcas(conn)) {
 
             Map<String, String> alertParms = new HashMap<>();
-
+            String lastLEvel = null;
             while (rs.next()) {
                Long metricId = rs.getLong("ma_m_id");
                Long actionAlertId = rs.getLong("aa_a_id");
-               int thresholdActinParameterId = rs.getInt("tap_id");
+               int thresholdActionParameterId = rs.getInt("tap_id");
                if (!Objects.equals(metricId, prevMetricId)) { // maps to new TCA
                   prevMetricId = metricId;
                }
@@ -83,16 +82,16 @@ public class Main {
                String aapValue = rs.getString("aap_value");
                alertParms.put(tapName, aapValue);
 
-               if (thresholdActinParameterId == 2) {
+               if (thresholdActionParameterId == 2) {
                   String sql = createEmailTcaInserts(alertParms, rs);
-                  System.out.println("-- EMAIL TCA for metric id: " + 
-                          metricId + " + actionAlertId id: " + actionAlertId + " parms: " + alertParms.toString());
+                  System.out.println("-- EMAIL TCA for metric id: "
+                          + metricId + " + actionAlertId id: " + actionAlertId + " parms: " + alertParms.toString());
                   System.out.println(sql);
                }
-               if (thresholdActinParameterId == 8) {
+               if (thresholdActionParameterId == 8) {
                   String sql = createDCTcaInserts(alertParms, rs);
-                  System.out.println("-- DC TCA for metric id: " + 
-                          metricId + " + actionAlertId id: " + actionAlertId + " parms: " + alertParms.toString());
+                  System.out.println("-- DC TCA for metric id: "
+                          + metricId + " + actionAlertId id: " + actionAlertId + " parms: " + alertParms.toString());
                   System.out.println(sql);
                }
             }
@@ -103,7 +102,7 @@ public class Main {
 
    }
 
-   private String insertTcaInstance(UUID tcaUuid, UUID resUuid, UUID metricUuid, ResultSet rs) throws SQLException {
+   private String insertTcaInstance(String tcaUuid, String resUuid, String metricUuid, ResultSet rs) throws SQLException {
 
       StringBuilder buf = new StringBuilder();
       buf.append("insert into tca_instance ( guid, resource, metric, qos, owner, created_on, modified_by, modified_on) values ( "
@@ -116,6 +115,9 @@ public class Main {
               + Util.stringize(rs.getString("update_email"))
               + Util.epochize(rs.getTimestamp("update_date"), false)
               + " ); \n");
+
+      buf.append("-- DELETE from tca_instance where guid = " + Util.stringize(tcaUuid, false) + ";\n");
+
       return buf.toString();
    }
 
@@ -130,10 +132,13 @@ public class Main {
               + Util.stringize(map.get(ResourceMgr.CLLI))
               + Util.stringize("", false) // groupId not used
               + " );\n");
+
+      buf.append("-- DELETE from resource where guid = " + Util.stringize(map.get(ResourceMgr.GUID), false) + ";\n");
+
       return buf.toString();
    }
 
-   private String insertMetric(UUID metricUUID, Integer level, Float threshold, ResultSet rs) throws SQLException {
+   private String insertMetric(String metricUUID, Integer level, Float threshold, ResultSet rs) throws SQLException {
 
       String metricName = rs.getString("tm_name");
 
@@ -146,10 +151,12 @@ public class Main {
               + Util.integerize(level, false)
               + " );\n");
 
+      buf.append("-- DELETE from  metric where guid = " + Util.stringize(metricUUID, false) + ";\n");
+
       return buf.toString();
    }
 
-   private String insertAlert(UUID alertUUID, UUID metricUUID, Map<String, String> alertParms, ResultSet rs) {
+   private String insertAlert(String alertUUID, String metricUUID, Map<String, String> alertParms, ResultSet rs) {
       StringBuilder buf = new StringBuilder();
 
       buf.append("INSERT INTO alert (guid, metric, timezone, period) VALUES ( "
@@ -159,10 +166,12 @@ public class Main {
               + Util.integerize(Util.periodToInt(alertParms.get(PERIOD_PARM_KEY)), false) // 1001-1003 
               + " );\n");
 
+      buf.append("-- DELETE from  alert where guid = " + Util.stringize(alertUUID, false) + ";\n");
+
       return buf.toString();
    }
 
-   private String insertAction(UUID actionUUID, UUID alertUUID, int action) {
+   private String insertAction(String actionUUID, String alertUUID, int action) {
       StringBuilder buf = new StringBuilder();
 
       buf.append("INSERT INTO action (guid, alert, action_type) VALUES ( "
@@ -170,11 +179,12 @@ public class Main {
               + Util.stringize(alertUUID)
               + Util.integerize(action, false) // EMAIL or DC
               + " );\n");
+      buf.append("-- DELETE from  action where guid = " + Util.stringize(actionUUID, false) + ";\n");
 
       return buf.toString();
    }
 
-   private String insertParameter(UUID actionUUID, int type, String value) {
+   private String insertParameter(String actionUUID, int type, String value) {
       StringBuilder buf = new StringBuilder();
 
       buf.append("INSERT INTO alert_action_parameter (action, action_parameter, value) VALUES ( "
@@ -183,48 +193,45 @@ public class Main {
               + Util.stringize(value, false)
               + " );\n");
 
+      buf.append("-- DELETE from  alert_action_parameter where action = " + Util.stringize(actionUUID, false) + ";\n");
+
       return buf.toString();
    }
 
    private String createEmailTcaInserts(Map<String, String> alertParms, ResultSet rs) throws SQLException {
 
       StringBuilder ret = new StringBuilder();
-      // create 2 seperate tca's one for WARNING and WATCH
       String circuitId = rs.getString("circuit_id");
       String uuid = rs.getString("uuid");
+      String levelString = rs.getString("aa_level"); // WARN or FAIL
+//      String emailAddress = rs.getString("aa_value");
+      String emailAddress = "alexander.metelkin@level3.com";
+      String resUUID = resources.lookupResource(circuitId, uuid);
 
-      UUID resUUID = resources.lookupResource(circuitId, uuid);
+      Float value = rs.getFloat("ma_fail");
+      Integer level = WARN_FAIL;
 
-      // value < 0  --> do not create
-      List<Float> values = new ArrayList<>();
-      List<Integer> levels = new ArrayList<>();
-      values.add(rs.getFloat("ma_warn"));
-      levels.add(WATCH_WARN);
-      values.add(rs.getFloat("ma_fail"));
-      levels.add(WARN_FAIL);
-
-      for (int i = 0; i < values.size(); i++) {
-
-         Float value = values.get(i);
-         Integer level = levels.get(i);
-
-         if (value < 0) {
-            continue;
-         }
-
-         UUID tcaUUID = UUID.randomUUID();
-         UUID metricUUID = UUID.randomUUID();
-         UUID alertUUID = UUID.randomUUID();
-         UUID actionUUID = UUID.randomUUID();
-         ret.append(insertTcaInstance(tcaUUID, resUUID, metricUUID, rs));
-
-         ret.append(insertMetric(metricUUID, level, value, rs));
-         ret.append(insertAlert(alertUUID, metricUUID, alertParms, rs));
-
-         ret.append(insertAction(actionUUID, alertUUID, EMAIL_ALERT));
-         ret.append(insertParameter(actionUUID, 21, rs.getString("aa_value")));
+      if ("WARN".equals(levelString)) {
+         value = rs.getFloat("ma_warn");
+         level = WATCH_WARN;
 
       }
+
+      if (value < 0) {
+         return "-- WARNING invalid level: " + level + "=" + value;
+      }
+
+      String tcaUUID = Util.uuidFromSeed();
+      String metricUUID = Util.uuidFromSeed();
+      String alertUUID = Util.uuidFromSeed();
+      String actionUUID = Util.uuidFromSeed();
+      ret.append(insertTcaInstance(tcaUUID, resUUID, metricUUID, rs));
+
+      ret.append(insertMetric(metricUUID, level, value, rs));
+      ret.append(insertAlert(alertUUID, metricUUID, alertParms, rs));
+
+      ret.append(insertAction(actionUUID, alertUUID, EMAIL_ALERT));
+      ret.append(insertParameter(actionUUID, 21, emailAddress));
 
       return ret.toString();
    }
@@ -234,58 +241,56 @@ public class Main {
       String circuitId = rs.getString("circuit_id");
       String uuid = rs.getString("uuid");
       String upgradeValue = rs.getString("aa_value"); // should be AUTO or numeric 
-      UUID resUUID = resources.lookupResource(circuitId, uuid);
+      String levelString = rs.getString("aa_level"); // WARN or FAIL
+//      String emailAddress = rs.getString("aa_value");
+//         String emailNotify = alertParms.get(EMAIL_PARM_KEY); // who to send the alert to
+      String emailNotify = "alexander.metelkin@level3.com";
+      String resUUID = resources.lookupResource(circuitId, uuid);
 
       StringBuilder ret = new StringBuilder();
 
-      // value < 0  --> do not create
-      List<Float> values = new ArrayList<>();
-      List<Integer> levels = new ArrayList<>();
-      values.add(rs.getFloat("ma_warn"));
-      levels.add(WATCH_WARN);
-      values.add(rs.getFloat("ma_fail"));
-      levels.add(WARN_FAIL);
+      Float value = rs.getFloat("ma_fail");
+      Integer level = WARN_FAIL;
 
-      for (int i = 0; i < values.size(); i++) {
+      if ("WARN".equals(levelString)) {
+         value = rs.getFloat("ma_warn");
+         level = WATCH_WARN;
 
-         Float value = values.get(i);
-         Integer level = levels.get(i);
+      }
 
-         if (value < 0) { // 
-            continue;
-         }
+      if (value < 0) {
+         return "-- WARNING invalid level: " + level + "=" + value;
+      }
 
-         UUID tcaUUID = UUID.randomUUID();
-         UUID metricUUID = UUID.randomUUID();
-         UUID alertUUID = UUID.randomUUID();
-         UUID actionUUID = UUID.randomUUID();
-         ret.append(insertTcaInstance(tcaUUID, resUUID, metricUUID, rs));
+      String tcaUUID = Util.uuidFromSeed();
+      String metricUUID = Util.uuidFromSeed();
+      String alertUUID = Util.uuidFromSeed();
+      String actionUUID = Util.uuidFromSeed();
+      ret.append(insertTcaInstance(tcaUUID, resUUID, metricUUID, rs));
 
-         ret.append(insertMetric(metricUUID, level, value, rs));
-         ret.append(insertAlert(alertUUID, metricUUID, alertParms, rs)); // timezone/period are extracted here
+      ret.append(insertMetric(metricUUID, level, value, rs));
+      ret.append(insertAlert(alertUUID, metricUUID, alertParms, rs)); // timezone/period are extracted here
 
-         ret.append(insertAction(actionUUID, alertUUID, DC_ALERT));
+      ret.append(insertAction(actionUUID, alertUUID, DC_ALERT));
 
-         String emailNotify = alertParms.get(EMAIL_PARM_KEY); // who to send the alert to
-         List<String> rates = Util.strToBandwidthRates(alertParms.get(RATE_PARM_KEY));
-         String two_x = rates.get(1);
-         String three_x = two_x;
-         if (rates.size() > 2) {
-            three_x = rates.get(3);
-         }
+      List<String> rates = Util.strToBandwidthRates(alertParms.get(RATE_PARM_KEY));
+      String two_x = rates.get(1);
+      String three_x = two_x;
+      if (rates.size() > 2) {
+         three_x = rates.get(3);
+      }
 
-         ret.append(insertParameter(actionUUID, BANDWIDTH_UPGRADE_PARM, upgradeValue));
-         if ("AUTO".equals(upgradeValue)) {
-            // other action paramaters must contain both name = "rate_2x" and name == "rate_3x"
-            ret.append(insertParameter(actionUUID, RATE_2X_PARM, two_x));
-            ret.append(insertParameter(actionUUID, RATE_3X_PARM, three_x));
-         } else {
-            // other action paramaters must contain both name = "rate_2x" and name == "rate_3x"
-            ret.append(insertParameter(actionUUID, RATE_2X_PARM, two_x));
-         }
-         if ( emailNotify != null && !emailNotify.isEmpty())
-            ret.append(insertParameter(actionUUID, NOTIFY_PARM, emailNotify));
-
+      ret.append(insertParameter(actionUUID, BANDWIDTH_UPGRADE_PARM, upgradeValue));
+      if ("AUTO".equals(upgradeValue)) {
+         // other action paramaters must contain both name = "rate_2x" and name == "rate_3x"
+         ret.append(insertParameter(actionUUID, RATE_2X_PARM, two_x));
+         ret.append(insertParameter(actionUUID, RATE_3X_PARM, three_x));
+      } else {
+         // other action paramaters must contain both name = "rate_2x" and name == "rate_3x"
+         ret.append(insertParameter(actionUUID, RATE_2X_PARM, two_x));
+      }
+      if (emailNotify != null && !emailNotify.isEmpty()) {
+         ret.append(insertParameter(actionUUID, NOTIFY_PARM, emailNotify));
       }
 
       return ret.toString();

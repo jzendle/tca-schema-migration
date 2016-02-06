@@ -33,9 +33,8 @@ JOIN npm_dba.action_alert AA ON MA.m_id = AA.m_id
 JOIN npm_dba.action_alert_parameter AAP ON AAP.a_id = AA.a_id
 JOIN npm_dba.threshold_action TA ON TA.id = AA.action_id
 JOIN npm_dba.threshold_action_parameter TAP ON TAP.id = AAP.parameter_id
-    -- where aa.action_id = 2
-WHERE
-    circuit_id ='05/KEFN/102871/TWCS'
+--    where aap.parameter_id = 8 and aa.value != 'AUTO'
+WHERE circuit_id ='41/KEFN/105668/TWCS'
 ORDER BY
     ma_m_id,
     aa_a_id,
