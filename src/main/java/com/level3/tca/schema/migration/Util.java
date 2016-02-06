@@ -45,7 +45,7 @@ public class Util {
 		if (comma.length > 0) {
 			ret = (Boolean) comma[0];
 		}
-		return "'" + obj.toString() + "'" + (ret == true ? "," : "");
+		return "'" + (obj==null?"":obj.toString()) + "'" + (ret == true ? "," : "");
 	}
 
 	public static String toEpoch(String timestamp, Boolean comma) {

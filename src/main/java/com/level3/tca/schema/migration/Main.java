@@ -62,10 +62,11 @@ public class Main {
 
          resources = new ResourceMgr(conn);
 
+			System.out.println(resources.makeInserts());
+
          try (ResultSet rs = Db.getAllTcas(conn)) {
 
             Map<String, String> alertParms = new HashMap<>();
-            String lastLEvel = null;
             while (rs.next()) {
                Long metricId = rs.getLong("ma_m_id");
                Long actionAlertId = rs.getLong("aa_a_id");
@@ -117,23 +118,6 @@ public class Main {
               + " ); \n");
 
       buf.append("-- DELETE from tca_instance where guid = " + Util.stringize(tcaUuid, false) + ";\n");
-
-      return buf.toString();
-   }
-
-   private String insertResource(ResultSet rs) throws SQLException {
-
-      Map map = resources.makeResourceMap(rs.getString("circuit_id"), rs.getString("uuid"));
-      StringBuilder buf = new StringBuilder();
-      buf.append("insert into resource ( guid, circuit, virtual_circuit, bclli, rgroup ) values ( "
-              + Util.stringize(map.get(ResourceMgr.GUID))
-              + Util.stringize(map.get(ResourceMgr.CIRCUIT))
-              + Util.stringize(map.get(ResourceMgr.VCIRCUIT))
-              + Util.stringize(map.get(ResourceMgr.CLLI))
-              + Util.stringize("", false) // groupId not used
-              + " );\n");
-
-      buf.append("-- DELETE from resource where guid = " + Util.stringize(map.get(ResourceMgr.GUID), false) + ";\n");
 
       return buf.toString();
    }
