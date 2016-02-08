@@ -9,7 +9,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import org.apache.commons.collections.keyvalue.MultiKey;
 
@@ -82,10 +81,9 @@ public final class ResourceMgr {
 
 		StringBuilder buf = new StringBuilder();
 		for (Map.Entry pair : resources.entrySet()) {
-			System.out.println(pair.getKey() + " = " + pair.getValue());
 			MultiKey key = (MultiKey) pair.getKey();
 			
-			buf.append("insert into resource ( guid, circuit, virtual_circuit, bclli, rgroup ) values ( "
+			buf.append("INSERT INTO resource ( guid, circuit, virtual_circuit, bclli, rgroup ) values ( "
 				+ Util.stringize(pair.getValue())
 				+ Util.stringize((String) key.getKey(0))
 				+ Util.stringize((String) key.getKey(1))
@@ -93,7 +91,7 @@ public final class ResourceMgr {
 				+ Util.stringize("", false) // groupId not used
 				+ " );\n");
 
-			buf.append("-- DELETE from resource where guid = " + Util.stringize(pair.getKey(), false) + ";\n");
+			buf.append("-- DELETE from resource where guid = " + Util.stringize(pair.getValue(), false) + ";\n");
 		}
 
 		return buf.toString();

@@ -5,10 +5,12 @@
  */
 package com.level3.tca.schema.migration;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,26 +45,30 @@ public class Main {
    public static final String TIMEZONE_PARM_KEY = "timezone";
    public static final String RATE_PARM_KEY = "rate";
 
-   Long prevMetricId = null;
-   Long prevActionAlertId = null;
-   Long prevThresholdActinParameterId = null; // BUSINESS_HRS, America/Chicago , etc
-   Long prevActionAlertParameterId = null; // BUSINESS_HRS, America/Chicago , etc
-
    private ResourceMgr resources = null;
 
-   public static void main(String[] args) throws SQLException, ClassNotFoundException {
+   public static void main(String[] args) throws SQLException, ClassNotFoundException, IOException {
 
-      Main main = new Main();
-      main.doit(args);
+      if (args.length < 1) {
+         System.err.println("usage " + Main.class.getCanonicalName() + " outputFile.name");
+         return;
+      }
+      try (PrintWriter pw = new PrintWriter(new FileWriter(args[0]))) {
+
+         Main main = new Main();
+         main.doit(pw);
+ 
+      }
    }
 
-   public void doit(String[] args) throws ClassNotFoundException {
+
+   public void doit(PrintWriter pw) throws ClassNotFoundException {
 
       try (Connection conn = Db.createConnection()) {
 
          resources = new ResourceMgr(conn);
 
-			System.out.println(resources.makeInserts());
+         pw.println(resources.makeInserts());
 
          try (ResultSet rs = Db.getAllTcas(conn)) {
 
@@ -71,12 +77,6 @@ public class Main {
                Long metricId = rs.getLong("ma_m_id");
                Long actionAlertId = rs.getLong("aa_a_id");
                int thresholdActionParameterId = rs.getInt("tap_id");
-               if (!Objects.equals(metricId, prevMetricId)) { // maps to new TCA
-                  prevMetricId = metricId;
-               }
-               if (!Objects.equals(actionAlertId, prevActionAlertId)) { // maps to action
-                  prevActionAlertId = actionAlertId;
-               }
 
                // collect name and value as these are the only variants across metric id and action alert id
                String tapName = rs.getString("tap_name");
@@ -85,15 +85,15 @@ public class Main {
 
                if (thresholdActionParameterId == 2) {
                   String sql = createEmailTcaInserts(alertParms, rs);
-                  System.out.println("-- EMAIL TCA for metric id: "
+                  pw.println("-- EMAIL TCA for metric id: "
                           + metricId + " + actionAlertId id: " + actionAlertId + " parms: " + alertParms.toString());
-                  System.out.println(sql);
+                  pw.println(sql);
                }
                if (thresholdActionParameterId == 8) {
                   String sql = createDCTcaInserts(alertParms, rs);
-                  System.out.println("-- DC TCA for metric id: "
+                  pw.println("-- DC TCA for metric id: "
                           + metricId + " + actionAlertId id: " + actionAlertId + " parms: " + alertParms.toString());
-                  System.out.println(sql);
+                  pw.println(sql);
                }
             }
          }
@@ -106,7 +106,7 @@ public class Main {
    private String insertTcaInstance(String tcaUuid, String resUuid, String metricUuid, ResultSet rs) throws SQLException {
 
       StringBuilder buf = new StringBuilder();
-      buf.append("insert into tca_instance ( guid, resource, metric, qos, owner, created_on, modified_by, modified_on) values ( "
+      buf.append("INSERT INTO tca_instance ( guid, resource, metric, qos, owner, created_on, modified_by, modified_on) values ( "
               + Util.stringize(tcaUuid)
               + Util.stringize(resUuid)
               + Util.stringize(metricUuid)
