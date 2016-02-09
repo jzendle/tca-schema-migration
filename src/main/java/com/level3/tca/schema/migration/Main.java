@@ -103,84 +103,6 @@ public class Main {
 
    }
 
-   private String insertTcaInstance(String tcaUuid, String resUuid, String metricUuid, ResultSet rs) throws SQLException {
-
-      StringBuilder buf = new StringBuilder();
-      buf.append("INSERT INTO tca_instance ( guid, resource, metric, qos, owner, created_on, modified_by, modified_on) values ( "
-              + Util.stringize(tcaUuid)
-              + Util.stringize(resUuid)
-              + Util.stringize(metricUuid)
-              + Util.integerize(rs.getString("ma_qos"))
-              + Util.stringize(rs.getString("create_email"))
-              + Util.epochize(rs.getTimestamp("create_date"))
-              + Util.stringize(rs.getString("update_email"))
-              + Util.epochize(rs.getTimestamp("update_date"), false)
-              + " ); \n");
-
-      buf.append("-- DELETE from tca_instance where guid = " + Util.stringize(tcaUuid, false) + ";\n");
-
-      return buf.toString();
-   }
-
-   private String insertMetric(String metricUUID, Integer level, Float threshold, ResultSet rs) throws SQLException {
-
-      String metricName = rs.getString("tm_name");
-
-      StringBuilder buf = new StringBuilder();
-      buf.append("INSERT INTO metric (guid, metric, threshold_type, threshold, level) VALUES ( "
-              + Util.stringize(metricUUID)
-              + Util.integerize(Util.metricToId(metricName)) // 501-504
-              + Util.integerize("1") // ABOVE
-              + Util.stringize(Util.thresholdToString(metricName, threshold)) // stringized value of threshold 200X 3.0, etc
-              + Util.integerize(level, false)
-              + " );\n");
-
-      buf.append("-- DELETE from  metric where guid = " + Util.stringize(metricUUID, false) + ";\n");
-
-      return buf.toString();
-   }
-
-   private String insertAlert(String alertUUID, String metricUUID, Map<String, String> alertParms, ResultSet rs) {
-      StringBuilder buf = new StringBuilder();
-
-      buf.append("INSERT INTO alert (guid, metric, timezone, period) VALUES ( "
-              + Util.stringize(alertUUID)
-              + Util.stringize(metricUUID)
-              + Util.integerize(Util.tzToInt(alertParms.get(TIMEZONE_PARM_KEY))) // 2001-2006
-              + Util.integerize(Util.periodToInt(alertParms.get(PERIOD_PARM_KEY)), false) // 1001-1003 
-              + " );\n");
-
-      buf.append("-- DELETE from  alert where guid = " + Util.stringize(alertUUID, false) + ";\n");
-
-      return buf.toString();
-   }
-
-   private String insertAction(String actionUUID, String alertUUID, int action) {
-      StringBuilder buf = new StringBuilder();
-
-      buf.append("INSERT INTO action (guid, alert, action_type) VALUES ( "
-              + Util.stringize(actionUUID)
-              + Util.stringize(alertUUID)
-              + Util.integerize(action, false) // EMAIL or DC
-              + " );\n");
-      buf.append("-- DELETE from  action where guid = " + Util.stringize(actionUUID, false) + ";\n");
-
-      return buf.toString();
-   }
-
-   private String insertParameter(String actionUUID, int type, String value) {
-      StringBuilder buf = new StringBuilder();
-
-      buf.append("INSERT INTO alert_action_parameter (action, action_parameter, value) VALUES ( "
-              + Util.stringize(actionUUID)
-              + Util.integerize(type)
-              + Util.stringize(value, false)
-              + " );\n");
-
-      buf.append("-- DELETE from  alert_action_parameter where action = " + Util.stringize(actionUUID, false) + ";\n");
-
-      return buf.toString();
-   }
 
    private String createEmailTcaInserts(Map<String, String> alertParms, ResultSet rs) throws SQLException {
 
@@ -209,13 +131,13 @@ public class Main {
       String metricUUID = Util.uuidFromSeed();
       String alertUUID = Util.uuidFromSeed();
       String actionUUID = Util.uuidFromSeed();
-      ret.append(insertTcaInstance(tcaUUID, resUUID, metricUUID, rs));
+      ret.append(Db.insertTcaInstance(tcaUUID, resUUID, metricUUID, rs));
 
-      ret.append(insertMetric(metricUUID, level, value, rs));
-      ret.append(insertAlert(alertUUID, metricUUID, alertParms, rs));
+      ret.append(Db.insertMetric(metricUUID, level, value, rs));
+      ret.append(Db.insertAlert(alertUUID, metricUUID, alertParms, rs));
 
-      ret.append(insertAction(actionUUID, alertUUID, EMAIL_ALERT));
-      ret.append(insertParameter(actionUUID, 21, emailAddress));
+      ret.append(Db.insertAction(actionUUID, alertUUID, EMAIL_ALERT));
+      ret.append(Db.insertParameter(actionUUID, 21, emailAddress));
 
       return ret.toString();
    }
@@ -250,12 +172,12 @@ public class Main {
       String metricUUID = Util.uuidFromSeed();
       String alertUUID = Util.uuidFromSeed();
       String actionUUID = Util.uuidFromSeed();
-      ret.append(insertTcaInstance(tcaUUID, resUUID, metricUUID, rs));
+      ret.append(Db.insertTcaInstance(tcaUUID, resUUID, metricUUID, rs));
 
-      ret.append(insertMetric(metricUUID, level, value, rs));
-      ret.append(insertAlert(alertUUID, metricUUID, alertParms, rs)); // timezone/period are extracted here
+      ret.append(Db.insertMetric(metricUUID, level, value, rs));
+      ret.append(Db.insertAlert(alertUUID, metricUUID, alertParms, rs)); // timezone/period are extracted here
 
-      ret.append(insertAction(actionUUID, alertUUID, DC_ALERT));
+      ret.append(Db.insertAction(actionUUID, alertUUID, DC_ALERT));
 
       List<String> rates = Util.strToBandwidthRates(alertParms.get(RATE_PARM_KEY));
       String two_x = rates.get(1);
@@ -264,17 +186,17 @@ public class Main {
          three_x = rates.get(3);
       }
 
-      ret.append(insertParameter(actionUUID, BANDWIDTH_UPGRADE_PARM, upgradeValue));
+      ret.append(Db.insertParameter(actionUUID, BANDWIDTH_UPGRADE_PARM, upgradeValue));
       if ("AUTO".equals(upgradeValue)) {
          // other action paramaters must contain both name = "rate_2x" and name == "rate_3x"
-         ret.append(insertParameter(actionUUID, RATE_2X_PARM, two_x));
-         ret.append(insertParameter(actionUUID, RATE_3X_PARM, three_x));
+         ret.append(Db.insertParameter(actionUUID, RATE_2X_PARM, two_x));
+         ret.append(Db.insertParameter(actionUUID, RATE_3X_PARM, three_x));
       } else {
          // other action paramaters must contain both name = "rate_2x" and name == "rate_3x"
-         ret.append(insertParameter(actionUUID, RATE_2X_PARM, two_x));
+         ret.append(Db.insertParameter(actionUUID, RATE_2X_PARM, two_x));
       }
       if (emailNotify != null && !emailNotify.isEmpty()) {
-         ret.append(insertParameter(actionUUID, NOTIFY_PARM, emailNotify));
+         ret.append(Db.insertParameter(actionUUID, NOTIFY_PARM, emailNotify));
       }
 
       return ret.toString();

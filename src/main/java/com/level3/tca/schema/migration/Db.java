@@ -11,6 +11,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.Map;
 
 /**
  *
@@ -119,5 +120,47 @@ public class Db {
 	static ResultSet getResources(Connection conn) throws SQLException {
 		Statement stmt = conn.createStatement();
 		return stmt.executeQuery(RESOURCES_SQL);
+	}
+
+	public static String insertAction(String actionUUID, String alertUUID, int action) {
+		StringBuilder buf = new StringBuilder();
+		buf.append("INSERT INTO action (guid, alert, action_type) VALUES ( " + Util.stringize(actionUUID) + Util.stringize(alertUUID) + Util.integerize(action, false) // EMAIL or DC
+		 + " );\n");
+		buf.append("-- DELETE from  action where guid = " + Util.stringize(actionUUID, false) + ";\n");
+		return buf.toString();
+	}
+
+	public static String insertTcaInstance(String tcaUuid, String resUuid, String metricUuid, ResultSet rs) throws SQLException {
+		StringBuilder buf = new StringBuilder();
+		buf.append("INSERT INTO tca_instance ( guid, resource, metric, qos, owner, created_on, modified_by, modified_on) values ( " + Util.stringize(tcaUuid) + Util.stringize(resUuid) + Util.stringize(metricUuid) + Util.integerize(rs.getString("ma_qos")) + Util.stringize(rs.getString("create_email")) + Util.epochize(rs.getTimestamp("create_date")) + Util.stringize(rs.getString("update_email")) + Util.epochize(rs.getTimestamp("update_date"), false) + " ); \n");
+		buf.append("-- DELETE from tca_instance where guid = " + Util.stringize(tcaUuid, false) + ";\n");
+		return buf.toString();
+	}
+
+	public static String insertMetric(String metricUUID, Integer level, Float threshold, ResultSet rs) throws SQLException {
+		String metricName = rs.getString("tm_name");
+		StringBuilder buf = new StringBuilder();
+		buf.append("INSERT INTO metric (guid, metric, threshold_type, threshold, level) VALUES ( " + Util.stringize(metricUUID) + Util.integerize(Util.metricToId(metricName)) // 501-504
+		 + Util.integerize("1") // ABOVE
+		 + Util.stringize(Util.thresholdToString(metricName, threshold)) // stringized value of threshold 200X 3.0, etc
+		 + Util.integerize(level, false) + " );\n");
+		buf.append("-- DELETE from  metric where guid = " + Util.stringize(metricUUID, false) + ";\n");
+		return buf.toString();
+	}
+
+	public static String insertParameter(String actionUUID, int type, String value) {
+		StringBuilder buf = new StringBuilder();
+		buf.append("INSERT INTO alert_action_parameter (action, action_parameter, value) VALUES ( " + Util.stringize(actionUUID) + Util.integerize(type) + Util.stringize(value, false) + " );\n");
+		buf.append("-- DELETE from  alert_action_parameter where action = " + Util.stringize(actionUUID, false) + ";\n");
+		return buf.toString();
+	}
+
+	public static String insertAlert(String alertUUID, String metricUUID, Map<String, String> alertParms, ResultSet rs) {
+		StringBuilder buf = new StringBuilder();
+		buf.append("INSERT INTO alert (guid, metric, timezone, period) VALUES ( " + Util.stringize(alertUUID) + Util.stringize(metricUUID) + Util.integerize(Util.tzToInt(alertParms.get(Main.TIMEZONE_PARM_KEY))) // 2001-2006
+		 + Util.integerize(Util.periodToInt(alertParms.get(Main.PERIOD_PARM_KEY)), false) // 1001-1003
+		 + " );\n");
+		buf.append("-- DELETE from  alert where guid = " + Util.stringize(alertUUID, false) + ";\n");
+		return buf.toString();
 	}
 }
