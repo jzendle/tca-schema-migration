@@ -10,8 +10,8 @@ SELECT DISTINCT
     C.update_date,
     C.update_email,
     AA.a_id          AS aa_a_id,
-    AA.action_id     AS aa_action_id,
-    AA.level         AS aa_level,
+   AA.action_id     AS aa_action_id,
+   AA.level         AS aa_level,
     AA.value         AS aa_value,
     AAP.parameter_id AS aap_parameter_id,
     AAP.value        AS aap_value,
@@ -34,7 +34,8 @@ JOIN npm_dba.action_alert_parameter AAP ON AAP.a_id = AA.a_id
 JOIN npm_dba.threshold_action TA ON TA.id = AA.action_id
 JOIN npm_dba.threshold_action_parameter TAP ON TAP.id = AAP.parameter_id
 --    where aap.parameter_id = 8 and aa.value != 'AUTO'
-WHERE circuit_id ='41/KEFN/105668/TWCS'
+    where aa.action_id = 1
+-- WHERE circuit_id ='41/KEFN/105668/TWCS'
 ORDER BY
     ma_m_id,
     aa_a_id,
