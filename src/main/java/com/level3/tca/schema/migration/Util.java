@@ -104,7 +104,10 @@ public class Util {
 	}
 
 	static int periodToInt(String period) {
-
+      if ( period == null) {
+         System.out.println("no period specified using 24x7");
+         return 1003;
+      }
 		switch (period) {
 			case "24_BY_7":
 				return 1003;

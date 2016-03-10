@@ -80,6 +80,7 @@ public class Main {
                   // collect name and value as these are the only variants across metric id and action alert id
                   String tapName = rs.getString("tap_name");
                   String aapValue = rs.getString("aap_value");
+                  // System.out.println("tapName: " + tapName + " aapValue: " + aapValue);
                   alertParms.put(tapName, aapValue);
 
                   if (thresholdActionParameterId == 2) {
@@ -87,12 +88,14 @@ public class Main {
                      pw.println("-- EMAIL TCA for metric id: "
                              + metricId + " + actionAlertId id: " + actionAlertId + " parms: " + alertParms.toString());
                      pw.println(sql);
+                     alertParms.clear();
                   }
                   if (thresholdActionParameterId == 8) {
                      String sql = createDCTcaInserts(conn2, alertParms, rs);
                      pw.println("-- DC TCA for metric id: "
                              + metricId + " + actionAlertId id: " + actionAlertId + " parms: " + alertParms.toString());
                      pw.println(sql);
+                     alertParms.clear();
                   }
                }
             }
@@ -109,8 +112,8 @@ public class Main {
       String circuitId = rs.getString("circuit_id");
       String uuid = rs.getString("uuid");
       String levelString = rs.getString("aa_level"); // WARN or FAIL
-//      String emailAddress = rs.getString("aa_value");
-      String emailAddress = "alexander.metelkin@level3.com";
+      String emailAddress = rs.getString("aa_value");
+      // String emailAddress = "alexander.metelkin@level3.com";
       String resUUID = resources.lookupResource(circuitId, uuid);
 
       Float value = rs.getFloat("ma_fail");
@@ -147,8 +150,8 @@ public class Main {
       String upgradeValue = rs.getString("aa_value"); // should be AUTO or numeric 
       String levelString = rs.getString("aa_level"); // WARN or FAIL
 //      String emailAddress = rs.getString("aa_value");
-//         String emailNotify = alertParms.get(EMAIL_PARM_KEY); // who to send the alert to
-      String emailNotify = "alexander.metelkin@level3.com";
+      String emailNotify = alertParms.get(EMAIL_PARM_KEY); // who to send the alert to
+      // String emailNotify = "alexander.metelkin@level3.com";
       String resUUID = resources.lookupResource(circuitId, uuid);
 
       StringBuilder ret = new StringBuilder();
