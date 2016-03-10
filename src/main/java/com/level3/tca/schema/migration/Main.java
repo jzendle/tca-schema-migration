@@ -14,7 +14,6 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  *
@@ -57,43 +56,44 @@ public class Main {
 
          Main main = new Main();
          main.doit(pw);
- 
+
       }
    }
-
 
    public void doit(PrintWriter pw) throws ClassNotFoundException {
 
       try (Connection conn = Db.createConnection()) {
+         try (Connection conn2 = Db.createConnection()) { // vertica chokes on more than one active result set/connection
 
-         resources = new ResourceMgr(conn);
+            resources = new ResourceMgr(conn);
 
-         pw.println(resources.makeInserts());
+            pw.println(resources.makeInserts());
 
-         try (ResultSet rs = Db.getAllTcas(conn)) {
+            try (ResultSet rs = Db.getAllTcas(conn)) {
 
-            Map<String, String> alertParms = new HashMap<>();
-            while (rs.next()) {
-               Long metricId = rs.getLong("ma_m_id");
-               Long actionAlertId = rs.getLong("aa_a_id");
-               int thresholdActionParameterId = rs.getInt("tap_id");
+               Map<String, String> alertParms = new HashMap<>();
+               while (rs.next()) {
+                  Long metricId = rs.getLong("ma_m_id");
+                  Long actionAlertId = rs.getLong("aa_a_id");
+                  int thresholdActionParameterId = rs.getInt("tap_id");
 
-               // collect name and value as these are the only variants across metric id and action alert id
-               String tapName = rs.getString("tap_name");
-               String aapValue = rs.getString("aap_value");
-               alertParms.put(tapName, aapValue);
+                  // collect name and value as these are the only variants across metric id and action alert id
+                  String tapName = rs.getString("tap_name");
+                  String aapValue = rs.getString("aap_value");
+                  alertParms.put(tapName, aapValue);
 
-               if (thresholdActionParameterId == 2) {
-                  String sql = createEmailTcaInserts(alertParms, rs);
-                  pw.println("-- EMAIL TCA for metric id: "
-                          + metricId + " + actionAlertId id: " + actionAlertId + " parms: " + alertParms.toString());
-                  pw.println(sql);
-               }
-               if (thresholdActionParameterId == 8) {
-                  String sql = createDCTcaInserts(alertParms, rs);
-                  pw.println("-- DC TCA for metric id: "
-                          + metricId + " + actionAlertId id: " + actionAlertId + " parms: " + alertParms.toString());
-                  pw.println(sql);
+                  if (thresholdActionParameterId == 2) {
+                     String sql = createEmailTcaInserts(alertParms, rs);
+                     pw.println("-- EMAIL TCA for metric id: "
+                             + metricId + " + actionAlertId id: " + actionAlertId + " parms: " + alertParms.toString());
+                     pw.println(sql);
+                  }
+                  if (thresholdActionParameterId == 8) {
+                     String sql = createDCTcaInserts(conn2, alertParms, rs);
+                     pw.println("-- DC TCA for metric id: "
+                             + metricId + " + actionAlertId id: " + actionAlertId + " parms: " + alertParms.toString());
+                     pw.println(sql);
+                  }
                }
             }
          }
@@ -102,7 +102,6 @@ public class Main {
       }
 
    }
-
 
    private String createEmailTcaInserts(Map<String, String> alertParms, ResultSet rs) throws SQLException {
 
@@ -142,8 +141,7 @@ public class Main {
       return ret.toString();
    }
 
-   private String createDCTcaInserts(Map<String, String> alertParms, ResultSet rs) throws SQLException {
-      // create 2 seperate tca's one for WARNING and WATCH
+   private String createDCTcaInserts(Connection conn, Map<String, String> alertParms, ResultSet rs) throws SQLException {
       String circuitId = rs.getString("circuit_id");
       String uuid = rs.getString("uuid");
       String upgradeValue = rs.getString("aa_value"); // should be AUTO or numeric 
@@ -180,20 +178,27 @@ public class Main {
       ret.append(Db.insertAction(actionUUID, alertUUID, DC_ALERT));
 
       List<String> rates = Util.strToBandwidthRates(alertParms.get(RATE_PARM_KEY));
-      String two_x = rates.get(1);
-      String three_x = two_x;
+      String first_x = rates.get(1);
+      float first_bw = Float.parseFloat(rates.get(0));
+      String second_x = first_x;
       if (rates.size() > 2) {
-         three_x = rates.get(3);
+         second_x = rates.get(3);
       }
 
       ret.append(Db.insertParameter(actionUUID, BANDWIDTH_UPGRADE_PARM, upgradeValue));
       if ("AUTO".equals(upgradeValue)) {
          // other action paramaters must contain both name = "rate_2x" and name == "rate_3x"
-         ret.append(Db.insertParameter(actionUUID, RATE_2X_PARM, two_x));
-         ret.append(Db.insertParameter(actionUUID, RATE_3X_PARM, three_x));
+         ret.append(Db.insertParameter(actionUUID, RATE_2X_PARM, first_x));
+         ret.append(Db.insertParameter(actionUUID, RATE_3X_PARM, second_x));
       } else {
-         // other action paramaters must contain both name = "rate_2x" and name == "rate_3x"
-         ret.append(Db.insertParameter(actionUUID, RATE_2X_PARM, two_x));
+         // calculate if defined bw is 2x or 3x
+         float commited = Db.getBandwidth(conn, circuitId);
+         int parm = RATE_2X_PARM;
+         if (first_bw / commited >= 3) {
+            System.out.println("rate_3x: " + circuitId);
+            parm = RATE_3X_PARM;
+         }
+         ret.append(Db.insertParameter(actionUUID, parm, first_x));
       }
       if (emailNotify != null && !emailNotify.isEmpty()) {
          ret.append(Db.insertParameter(actionUUID, NOTIFY_PARM, emailNotify));

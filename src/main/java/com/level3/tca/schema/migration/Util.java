@@ -7,6 +7,7 @@ package com.level3.tca.schema.migration;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,12 +17,13 @@ import java.util.UUID;
  */
 public class Util {
    
-   private static Double uuidSeed = new Double(0);
-   private static byte [] bytes = new byte[1];
+   // private static Double uuidSeed = new Double(0);
+   // private static Double uuidSeed = new Double(new Date().getTime());
+   // private static byte [] bytes = new byte[1];
    
    public static String uuidFromSeed() {
-      bytes[0] = (uuidSeed++).byteValue();
-      return UUID.nameUUIDFromBytes(bytes).toString();
+      // bytes[0] = (uuidSeed++).byteValue();
+      return UUID.randomUUID().toString();
    }
    
 	public static String integerize(Object obj, Boolean... comma) {
